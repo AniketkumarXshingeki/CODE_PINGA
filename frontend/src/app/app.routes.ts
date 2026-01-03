@@ -6,7 +6,6 @@ import { Home } from './home/home';
 import { History } from './history/history';
 import { Room } from './room/room';
 import { About } from './about/about';
-import { Register } from './register/register';
 
 export const routes: Routes = [
    { path: '', component: Home},
