@@ -11,6 +11,8 @@ generator client {
 datasource db {
   provider = "postgresql"
   }
+
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -18,4 +20,44 @@ model User {
   username  String   @unique
   playerId  String   @unique  
   createdAt DateTime @default(now())
+  history      MatchHistory[]
+}
+
+enum RoomStatus {
+  ACTIVE
+  IN_PROGRESS
+  CLOSED
+}
+
+model Room {
+  id        String       @id @default(uuid())
+  roomCode  String       @unique
+  hostId    String
+  status    RoomStatus   @default(ACTIVE) // Replaced the boolean
+  sessions  GameSession[]
+  createdAt DateTime     @default(now())
+}
+
+model GameSession {
+  id             String         @id @default(uuid())
+  roomId         String
+  room           Room           @relation(fields: [roomId], references: [id])
+  
+  // Tracks if this is the 1st, 2nd, or 10th game in this specific room
+  roundNumber    Int            @default(1) 
+  
+  drawnNumbers   Int[]          // The sequence of balls
+  playerResults  MatchHistory[]
+  createdAt      DateTime       @default(now())
+}
+model MatchHistory {
+  id           String      @id @default(uuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [playerId])
+  sessionId    String
+  session      GameSession @relation(fields: [sessionId], references: [id])
+  
+  position     Int?
+  loadout      Json        
+  playerClicks Json        
 }
