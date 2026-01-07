@@ -21,7 +21,7 @@ showNavbar: boolean = true;
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
       // Define the routes where the navbar should be HIDDEN
-      const hideOnRoutes = ['/login', '/play', '/register'];
+      const hideOnRoutes = ['/login', '/play', '/register','/player'];
       
       // Check if current URL is in our list
       this.showNavbar = !hideOnRoutes.includes(event.urlAfterRedirects);

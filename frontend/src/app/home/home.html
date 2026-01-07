@@ -1,207 +1,94 @@
 <div class="min-h-screen bg-slate-900 text-white font-sans selection:bg-cyan-500 selection:text-black overflow-hidden relative">
+  
+  <div class="absolute top-0 left-0 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+  <div class="absolute bottom-0 right-0 w-96 h-96 bg-cyan-600/10 rounded-full blur-[120px] translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
 
-     
-
-  <div class="absolute top-0 left-0 w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2"></div>
-
-  <div class="absolute bottom-0 right-0 w-96 h-96 bg-cyan-600/20 rounded-full blur-[100px] translate-x-1/2 translate-y-1/2"></div>
-
-
-
-
-
-
-
-  <main class="flex flex-col items-center justify-center min-h-[80vh] px-4 relative z-10">
-
-   
-
+  <main class="flex flex-col items-center justify-center min-h-screen px-4 relative z-10 w-full max-w-6xl mx-auto">
+    
     <div class="text-center mb-12">
-
-      <h1 class="text-5xl md:text-7xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-white to-purple-300">
-
+      <h1 class="text-5xl md:text-7xl font-black mb-4 tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-500">
         STRATEGIC BINGO
-
       </h1>
-
-      <p class="text-slate-400 text-lg max-w-2xl mx-auto">
-
-        Challenge friends. Claim the grid. First to 5 lines wins.
-
-      </p>
-
+      <div class="h-1.5 w-24 bg-cyan-500 mx-auto rounded-full shadow-[0_0_20px_rgba(6,182,212,0.6)]"></div>
     </div>
 
-
-
-    <div class="w-full max-w-4xl flex items-center justify-center gap-4 md:gap-12">
-
-     
-
-      <button
-
-        (click)="prevSize()"
-
-        [disabled]="boardSize === minSize"
-
-        [class.opacity-30]="boardSize === minSize"
-
-        [class.cursor-not-allowed]="boardSize === minSize"
-
-        class="p-4 rounded-full border border-slate-700 bg-slate-800/50 backdrop-blur-md transition-all hover:bg-slate-700 hover:border-cyan-500/50 hover:scale-110 active:scale-95"
-
-      >
-
-        <lucide-icon [img]="icons.ChevronLeft" [size]="32"></lucide-icon>
-
-      </button>
-
-
-
-      <div class="flex flex-col items-center gap-6">
-
-        <div class="relative group cursor-pointer">
-
-          <div class="w-64 h-64 md:w-80 md:h-80 bg-slate-800/40 backdrop-blur-xl border border-slate-600/50 rounded-2xl shadow-2xl overflow-hidden relative group-hover:border-cyan-500/50 transition-colors duration-300 p-2">
-
-           
-
-            <div class="grid gap-1 w-full h-full transition-all duration-300 ease-in-out"
-
-                 [ngStyle]="gridStyle">
-
-                 
-
-                 @for (item of gridArray; track $index) {
-
-                   <div class="rounded-sm bg-cyan-400/20 border border-cyan-500/30"
-
-                        [class.border-[0.5px]]="boardSize > 8">
-
-                   </div>
-
-                 }
-
-
-
+    <div class="flex flex-col lg:flex-row items-center justify-center gap-12 w-full">
+      
+      <div class="w-full lg:w-[450px] aspect-square flex items-center justify-center">
+        @if (selectedLoadoutId && activeLoadout) {
+          <div class="w-full h-full bg-slate-950/40 backdrop-blur-xl border border-slate-800/50 rounded-3xl p-8 shadow-2xl animate-in fade-in slide-in-from-left-8 duration-500 relative flex flex-col">
+            
+            <div class="absolute -top-3 -left-3 bg-cyan-500 text-slate-950 text-[10px] font-black px-4 py-1.5 rounded-full shadow-lg uppercase tracking-widest">
+              {{ activeLoadout.name }}
             </div>
-
-           
-
-            <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-
-              <span class="text-cyan-400 font-bold text-xl tracking-widest">START GAME</span>
-
+            
+            <div class="grid gap-2 w-full h-full" [ngStyle]="previewStyle">
+              @for (val of activeLoadout.content.slice(0, boardSize * boardSize); track $index) {
+                <div class="aspect-square bg-cyan-500/5 border border-cyan-500/20 rounded-lg flex items-center justify-center text-sm font-mono text-cyan-400 shadow-[inset_0_0_15px_rgba(6,182,212,0.1)]">
+                  {{ val }}
+                </div>
+              }
             </div>
+          </div>
+        }
+      </div>
 
+      <div class="w-full max-w-md bg-slate-950/50 backdrop-blur-2xl border border-slate-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-cyan-500/10 rounded-tr-3xl"></div>
+        
+        <h3 class="text-xs font-black uppercase tracking-[0.4em] mb-10 text-cyan-500/70 flex items-center gap-2">
+          <span class="w-2 h-2 bg-cyan-500 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.8)] "></span>
+          Game Settings
+        </h3>
+
+        <div class="space-y-8 mb-10">
+          <div class="group">
+            <label class="block text-[10px] uppercase tracking-widest text-cyan-500/70 font-bold mb-3 ml-1">Grid Dimensions</label>
+            <div class="relative">
+              <select [(ngModel)]="boardSize" 
+                      class="w-full bg-slate-900 border border-slate-800 rounded-xl py-4 px-5 text-white appearance-none focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 transition-all cursor-pointer font-medium">
+                <option [value]="5">5 x 5 Protocol</option>
+                <option [value]="6">6 x 6 Protocol</option>
+                <option [value]="7">7 x 7 Protocol</option>
+                <option [value]="8">8 x 8 Protocol</option>
+              </select>
+              <lucide-icon [img]="icons.ChevronDown" [size]="18" class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none"></lucide-icon>
+            </div>
           </div>
 
-
-
-          <div class="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 -z-10"></div>
-
+          <div class="group">
+            <label class="block text-[10px] uppercase tracking-widest text-cyan-500/70 font-bold mb-3 ml-1">Active Loadout</label>
+            <div class="relative">
+              <select [(ngModel)]="selectedLoadoutId" 
+                      class="w-full bg-slate-900 border border-slate-800 rounded-xl py-4 px-5 text-white appearance-none focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 transition-all cursor-pointer font-medium">
+                <option value="" disabled selected>Select Loadout...</option>
+                @for (loadout of availableLoadouts; track loadout.id) {
+                  <option [value]="loadout.id">{{ loadout.name }}</option>
+                }
+              </select>
+              <lucide-icon [img]="icons.LayoutGrid" [size]="18" class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none"></lucide-icon>
+            </div>
+          </div>
         </div>
 
-
-
-        <div class="flex flex-col items-center">
-
-           <span class="text-4xl font-mono font-bold text-white mb-1">
-
-             {{ boardSize }} <span class="text-cyan-500">x</span> {{ boardSize }}
-
-           </span>
-
-           <span class="text-xs uppercase tracking-widest text-slate-500 font-semibold">
-
-             Grid Size
-
-           </span>
-
-           <span class="text-xs text-slate-600 mt-1">
-
-             Range: 1 - {{ boardSize * boardSize }}
-
-           </span>
-
-        </div>
-
-        <button
-
-    (click)="startMatch()"
-
-    class="group relative px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl font-bold text-white shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 transition-all duration-300 overflow-hidden"
-
-  >
-
-    <div class="relative z-10 flex items-center gap-2">
-
-      <span>START MATCH</span>
-
-      <lucide-icon [img]="icons.Play" [size]="18" class="group-hover:translate-x-1 transition-transform"></lucide-icon>
-
-    </div>
-
-    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-
-  </button>
-
-      </div>
-
-
-
-      <button
-
-        (click)="nextSize()"
-
-        [disabled]="boardSize === maxSize"
-
-        [class.opacity-30]="boardSize === maxSize"
-
-        [class.cursor-not-allowed]="boardSize === maxSize"
-
-        class="p-4 rounded-full border border-slate-700 bg-slate-800/50 backdrop-blur-md transition-all hover:bg-slate-700 hover:border-cyan-500/50 hover:scale-110 active:scale-95"
-
-      >
-
-        <lucide-icon [img]="icons.ChevronRight" [size]="32"></lucide-icon>
-
-      </button>
-
-    </div>
-
-
-
-    <div class="mt-16 flex gap-8 md:gap-16 text-slate-500">
-
-      <div class="flex items-center gap-2">
-
-        <lucide-icon [img]="icons.Users" [size]="18" class="text-purple-400"></lucide-icon>
-
-        <span class="text-sm font-medium">Multiplayer</span>
-
-      </div>
-
-      <div class="flex items-center gap-2">
-
-        <lucide-icon [img]="icons.Monitor" [size]="18" class="text-cyan-400"></lucide-icon>
-
-        <span class="text-sm font-medium">Web & Desktop</span>
-
-      </div>
-
-      <div class="flex items-center gap-2">
-
-        <lucide-icon [img]="icons.Info" [size]="18" class="text-green-400"></lucide-icon>
-
-        <span class="text-sm font-medium">v1.0.0</span>
-
+        <button (click)="startMatch()" [disabled]="!selectedLoadoutId" 
+                class="w-full py-5 bg-white text-slate-950 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-all active:scale-95 disabled:opacity-10 disabled:grayscale shadow-xl shadow-white/5">
+          Start Match
+        </button>
       </div>
 
     </div>
 
-
-
+    <div class="mt-16 flex gap-10 items-center text-slate-600">
+      <div class="flex items-center gap-3">
+        <lucide-icon [img]="icons.Users" [size]="16" class="text-purple-500"></lucide-icon>
+        <span class="text-[10px] uppercase tracking-widest font-bold">1,248 Active Players</span>
+      </div>
+      <div class="w-1 h-1 bg-slate-800 rounded-full"></div>
+      <div class="flex items-center gap-3">
+        <lucide-icon [img]="icons.Monitor" [size]="16" class="text-cyan-500"></lucide-icon>
+        <span class="text-[10px] uppercase tracking-widest font-bold">Region: Global-Node</span>
+      </div>
+    </div>
   </main>
-
 </div>

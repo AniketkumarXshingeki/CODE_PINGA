@@ -7,37 +7,53 @@
     </a>
 
     <div class="hidden md:flex items-center gap-8 text-slate-300 font-medium">
-      <a routerLink="/" class="hover:text-cyan-400 transition-colors cursor-pointer">Home</a>
+      <a *ngIf="isLoggedIn" routerLink="/friends" class="hover:text-cyan-400 transition-colors cursor-pointer">Friends</a>
       <a routerLink="/room" class="hover:text-cyan-400 transition-colors cursor-pointer">Room</a>
+      <a *ngIf="isLoggedIn" routerLink="/history" class="hover:text-cyan-400 transition-colors cursor-pointer">History</a>
       <a routerLink="/about" class="hover:text-cyan-400 transition-colors cursor-pointer">About</a>
     </div>
 
     <div class="flex items-center gap-4">
-      
       <ng-container *ngIf="!isLoggedIn">
-        <a routerLink="/login" class="px-6 py-2 border border-transparent hover:border-cyan-500/30 hover:bg-cyan-400/10 hover:text-cyan-400 font-bold rounded-full transition-all cursor-pointer text-sm">
-          Log In
-        </a>
-        <a routerLink="/register" class="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-105 font-bold rounded-full transition-all shadow-lg shadow-cyan-500/25 cursor-pointer text-sm text-white">
-          Register
-        </a>
+        <a routerLink="/login" class="px-6 py-2 border border-transparent hover:border-cyan-500/30 hover:bg-cyan-400/10 hover:text-cyan-400 font-bold rounded-full transition-all cursor-pointer text-sm">Log In</a>
+        <a routerLink="/register" class="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-105 font-bold rounded-full transition-all shadow-lg shadow-cyan-500/25 cursor-pointer text-sm text-white">Register</a>
       </ng-container>
 
       <ng-container *ngIf="isLoggedIn">
-        <div class="flex items-center gap-3 px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full">
+        <button routerLink="/player" class="flex items-center gap-3 px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full cursor-pointer " title="Profile">
           <lucide-icon [img]="icons.User" [size]="16" class="text-cyan-400"></lucide-icon>
           <span class="text-sm font-bold tracking-wide uppercase">{{ username }}</span>
-        </div>
-
-        <button routerLink="/loadouts" class="p-2 hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-cyan-400" title="My Loadouts">
-          <lucide-icon [img]="icons.LayoutGrid" [size]="20"></lucide-icon>
         </button>
 
-        <button (click)="onLogout()" class="p-2 hover:bg-red-500/10 rounded-full transition-colors text-slate-400 hover:text-red-400" title="Logout">
+        <button (click)="onLogoutClick()" class="p-2 hover:bg-red-500/10 rounded-full transition-colors text-slate-400 hover:text-red-400" title="Logout">
           <lucide-icon [img]="icons.LogOut" [size]="20"></lucide-icon>
         </button>
       </ng-container>
-
     </div>
   </nav>
+
+  <div *ngIf="showLogoutConfirm" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" (click)="cancelLogout()"></div>
+    
+    <div class="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500">
+          <lucide-icon [img]="icons.AlertTriangle" [size]="24"></lucide-icon>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold">End Session?</h3>
+          <p class="text-sm text-slate-400">Are you sure you want to log out?</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button (click)="cancelLogout()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold transition-all">
+          Stay
+        </button>
+        <button (click)="confirmLogout()" class="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-500 font-bold shadow-lg shadow-red-600/20 transition-all">
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

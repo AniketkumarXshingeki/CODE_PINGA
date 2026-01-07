@@ -21,7 +21,29 @@ model User {
   playerId  String   @unique  
   createdAt DateTime @default(now())
   history      MatchHistory[]
+  loadouts  Loadout[]
+
+  // Friends System (Many-to-Many self-relation)
+  friends   User[] @relation("UserFriends")
+  friendOf  User[] @relation("UserFriends")
 }
+
+model Loadout {
+  id          String   @id @default(uuid())
+  name        String
+  gridSize    Int      // e.g., 5, 6, 7 (to represent 5x5, 6x6)
+  
+  // Storing the actual numbers [1, 5, 22, ...] as a JSON array
+  arrangement Json     
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Link to User
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+}
+
 
 enum RoomStatus {
   ACTIVE

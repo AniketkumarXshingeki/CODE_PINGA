@@ -1,0 +1,105 @@
+<div class="min-h-screen bg-slate-900 text-white font-sans p-6">
+  <div class="max-w-4xl mx-auto">
+    
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+      <div>
+        <h1 class="text-3xl font-black tracking-tighter uppercase">Squadron</h1>
+        <p class="text-slate-500 text-xs font-bold tracking-[0.2em] uppercase">Manage your battle allies</p>
+      </div>
+
+     <div class="flex flex-col sm:flex-row gap-3">
+    <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 w-fit">
+      <button 
+        (click)="searchMode = 'username'"
+        [class.bg-cyan-500]="searchMode === 'username'"
+        [class.text-slate-950]="searchMode === 'username'"
+        [class.text-slate-500]="searchMode !== 'username'"
+        class="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+        Username
+      </button>
+      <button 
+        (click)="searchMode = 'playerId'"
+        [class.bg-cyan-500]="searchMode === 'playerId'"
+        [class.text-slate-950]="searchMode === 'playerId'"
+        [class.text-slate-500]="searchMode !== 'playerId'"
+        class="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+        Player ID
+      </button>
+    </div>
+
+    <div class="relative flex-1">
+      <input 
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="searchPlayer()"
+        type="text" 
+        [placeholder]="searchMode === 'username' ? 'Enter warrior name...' : 'Enter ID (e.g. BNG-1234)...'" 
+        class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-sm focus:border-cyan-500 outline-none transition-all shadow-inner"
+      >
+      <lucide-icon 
+        [img]="searchMode === 'username' ? icons.Search : icons.UserPlus" 
+        [size]="18" 
+        class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">
+      </lucide-icon>
+
+    </div>
+    <button 
+      (click)="searchPlayer()"
+class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-cyan-500/20 flex items-center justify-center min-w-[56px]">      <lucide-icon [img]="icons.Send" [size]="16"></lucide-icon>
+    </button>
+  </div>
+    </div>
+
+    <div class="grid gap-4">
+      @for (friend of friends; track friend.id) {
+        <div class="group bg-slate-950/50 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 flex items-center justify-between transition-all">
+          
+          <div class="flex items-center gap-4">
+            <div class="relative">
+              <div class="w-14 h-14 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700 flex items-center justify-center font-black text-xl text-slate-500 group-hover:border-cyan-500/50 transition-colors">
+                {{ friend.username[0] }}
+              </div>
+              <div [class]="{
+                'bg-green-500': friend.status === 'online',
+                'bg-amber-500': friend.status === 'in-match',
+                'bg-slate-600': friend.status === 'offline'
+              }" class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-4 border-slate-900 shadow-lg"></div>
+            </div>
+
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-slate-200">{{ friend.username }}</h4>
+                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded uppercase font-bold tracking-tighter">LVL {{ friend.level }}</span>
+              </div>
+              <p class="text-[10px] uppercase tracking-widest font-bold" [ngClass]="{
+                'text-green-500/70': friend.status === 'online',
+                'text-amber-500/70': friend.status === 'in-match',
+                'text-slate-600': friend.status === 'offline'
+              }">
+                {{ friend.status === 'in-match' ? 'In Tactical Session' : friend.status }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            @if (friend.status === 'online') {
+              <button (click)="inviteToMatch(friend.id)" class="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 border border-cyan-500/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                <lucide-icon [img]="icons.Send" [size]="14"></lucide-icon>
+                Invite
+              </button>
+            }
+            <button class="p-2 hover:bg-red-500/10 text-slate-700 hover:text-red-500 rounded-xl transition-all" title="Remove Ally">
+              <lucide-icon [img]="icons.X" [size]="18"></lucide-icon>
+            </button>
+          </div>
+
+        </div>
+      } @empty {
+        <div class="text-center py-20 border-2 border-dashed border-slate-800 rounded-3xl">
+          <lucide-icon [img]="icons.ShieldAlert" [size]="48" class="text-slate-800 mx-auto mb-4"></lucide-icon>
+          <p class="text-slate-600 font-bold uppercase tracking-widest">No active allies found</p>
+        </div>
+      }
+    </div>
+
+  </div>
+</div>

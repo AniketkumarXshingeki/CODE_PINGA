@@ -6,6 +6,8 @@ import { Home } from './home/home';
 import { History } from './history/history';
 import { Room } from './room/room';
 import { About } from './about/about';
+import { Player } from './player/player';
+import { Friends } from './friends/friends';
 
 export const routes: Routes = [
    { path: '', component: Home},
@@ -15,5 +17,7 @@ export const routes: Routes = [
    { path: 'history', component:History},
    { path: 'room', component:Room},
    { path: 'about', component:About},
-   { path: 'register', component:Login}
+   { path: 'register', component:Login},
+   { path: 'player', component:Player},
+   { path:'friends', component:Friends}
 ];

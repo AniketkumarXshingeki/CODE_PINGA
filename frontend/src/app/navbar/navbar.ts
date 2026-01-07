@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core'; // Added Inject & PLATFORM_ID
+import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
-import { LucideAngularModule, LogOut, User, LayoutGrid } from 'lucide-angular';
+import { LucideAngularModule, LogOut, User, LayoutGrid, X, AlertTriangle } from 'lucide-angular';
 
 @Component({
   selector: 'app-navbar',
@@ -12,17 +12,20 @@ import { LucideAngularModule, LogOut, User, LayoutGrid } from 'lucide-angular';
   styleUrls: ['./navbar.css'],
 })
 export class Navbar implements OnInit {
-  // Icons for the logged-in state
-  readonly icons = { LogOut, User, LayoutGrid };
+  // Added X and AlertTriangle icons
+  readonly icons = { LogOut, User, LayoutGrid, X, AlertTriangle };
   
   isLoggedIn = false;
   username = '';
+  showLogoutConfirm = false; // Controls the modal visibility
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService, 
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   ngOnInit(): void {
-    // Subscribe to the login status from AuthService
-    // This handles the "Remember Me" logic automatically on page load
     this.authService.isLoggedIn$.subscribe((status) => {
       this.isLoggedIn = status;
       if (status) {
@@ -31,7 +34,19 @@ export class Navbar implements OnInit {
     });
   }
 
-  onLogout(): void {
+  // Opens the modal
+  onLogoutClick(): void {
+    this.showLogoutConfirm = true;
+  }
+
+  // Closes the modal
+  cancelLogout(): void {
+    this.showLogoutConfirm = false;
+  }
+
+  // The actual logout logic
+  confirmLogout(): void {
+    this.showLogoutConfirm = false;
     this.authService.logout();
     this.router.navigate(['/']);
   }

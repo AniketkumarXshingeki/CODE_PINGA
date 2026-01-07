@@ -1,0 +1,122 @@
+<div class="min-h-screen bg-slate-900 text-white p-4 md:p-8">
+  <div class="max-w-5xl mx-auto space-y-8">
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <div class="lg:col-span-2 bg-slate-950/50 border border-slate-800 rounded-3xl p-8 flex items-center gap-6 relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-4 opacity-10">
+          <lucide-icon [img]="icons.User" [size]="120"></lucide-icon>
+        </div>
+        
+        <div class="w-24 h-24 bg-gradient-to-tr from-cyan-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-xl shadow-cyan-500/20">
+          <span class="text-4xl font-black">{{ username[0] | uppercase }}</span>
+        </div>
+
+        <div class="space-y-1">
+          <h1 class="text-3xl font-black tracking-tighter uppercase">{{ username }}</h1>
+          <div class="flex items-center gap-2 text-slate-500 font-mono text-sm">
+            <lucide-icon [img]="icons.Hash" [size]="14"></lucide-icon>
+            <span>{{ playerId }}</span>
+          </div>
+          <div class="pt-2">
+            <span class="bg-cyan-500/10 text-cyan-400 text-[10px] font-black px-3 py-1 rounded-full border border-cyan-500/20 uppercase tracking-widest">
+              Veteran Commander
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <a routerLink="/friends" class="flex-1 flex items-center justify-between p-5 bg-slate-950/50 border border-slate-800 rounded-2xl hover:border-cyan-500/50 transition-all group">
+          <div class="flex items-center gap-4">
+            <lucide-icon [img]="icons.Users" class="text-slate-500 group-hover:text-cyan-400"></lucide-icon>
+            <span class="font-bold uppercase tracking-widest text-sm">Squadron</span>
+          </div>
+          <span class="text-xs text-slate-600">12 Allies</span>
+        </a>
+        
+        <a routerLink="/history" class="flex-1 flex items-center justify-between p-5 bg-slate-950/50 border border-slate-800 rounded-2xl hover:border-purple-500/50 transition-all group">
+          <div class="flex items-center gap-4">
+            <lucide-icon [img]="icons.History" class="text-slate-500 group-hover:text-purple-400"></lucide-icon>
+            <span class="font-bold uppercase tracking-widest text-sm">Battle Log</span>
+          </div>
+          <span class="text-xs text-slate-600">View History</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="bg-slate-950/30 border border-slate-800/50 rounded-3xl p-8">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+    <div>
+      <h2 class="text-xl font-black uppercase tracking-tight">Loadout Archives</h2>
+      
+      <div class="flex flex-wrap gap-2 mt-4">
+        <button (click)="activeFilter = 0" [class.bg-cyan-500]="activeFilter === 0" 
+                class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase border border-slate-700 transition-all">All</button>
+        @for (size of [5, 6, 7, 8, 9, 10]; track size) {
+          <button (click)="activeFilter = size" [class.bg-cyan-500]="activeFilter === size"
+                  [class.text-slate-950]="activeFilter === size"
+                  class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase border border-slate-700 transition-all">
+            {{size}}x{{size}}
+          </button>
+        }
+      </div>
+    </div>
+    
+    <button class="flex items-center gap-2 px-4 py-2 bg-white text-slate-950 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all">
+      <lucide-icon [img]="icons.Plus" [size]="14"></lucide-icon> New Loadout
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @for (loadout of filteredLoadouts; track loadout.id) {
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex items-center justify-between group">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-500">
+            <span class="font-mono text-sm">{{ loadout.size }}x{{ loadout.size }}</span>
+          </div>
+          <h4 class="font-bold">{{ loadout.name }}</h4>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <button (click)="openEditor(loadout)" class="p-2 bg-slate-800 hover:bg-cyan-500/20 text-slate-500 hover:text-cyan-400 rounded-lg transition-all">
+            <lucide-icon [img]="icons.Edit3" [size]="18"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+@if (editingLoadout) {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-md" (click)="editingLoadout = null"></div>
+    
+    <div class="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-black uppercase">Editing: {{editingLoadout.name}}</h3>
+        <button (click)="editingLoadout = null" class="text-slate-500 hover:text-white"><lucide-icon [img]="icons.X" [size]="24"></lucide-icon></button>
+      </div>
+
+      <div class="grid gap-2 mb-8 max-h-[50vh] overflow-y-auto p-2" [ngStyle]="editorGridStyle">
+        @for (val of editingLoadout.content; track $index) {
+          <div class="relative">
+            <input 
+              type="number" 
+              [(ngModel)]="editingLoadout.content[$index]"
+              class="w-full aspect-square bg-slate-800 border border-slate-700 rounded-lg text-center font-mono text-cyan-400 focus:border-cyan-500 outline-none text-sm"
+            >
+          </div>
+        }
+      </div>
+
+      <div class="flex gap-4">
+        <button (click)="editingLoadout = null" class="flex-1 py-3 bg-slate-800 rounded-xl font-bold uppercase text-xs">Cancel</button>
+        <button (click)="saveLoadout()" class="flex-1 py-3 bg-cyan-500 text-slate-950 rounded-xl font-bold uppercase text-xs">Save Changes</button>
+      </div>
+    </div>
+  </div>
+}
+
+  </div>
+</div>

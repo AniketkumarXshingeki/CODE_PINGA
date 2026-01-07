@@ -53,12 +53,20 @@ export class AuthService {
         password: hashedPassword,
         username: dto.username,
         playerId: playerId,
-      },
-    });
+        loadouts: {
+        create: {
+          name: 'Alpha Squad',
+          gridSize: 5,
+          arrangement: Array.from({ length: 25 }, (_, i) => i + 1), // [1, 2, ..., 25]
+        }
+      }
+    } as any,
+    include: { loadouts: true } // Crucial: This returns the loadout we just made
+  });
 
     // 5. Clean up response (don't send password back)
     const { password, ...result } = user;
-    return result;
+    return this.generateToken(result);
   }
 
   /**
@@ -81,17 +89,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 3. Return user info (Later we will add JWT here)
-    // Generate JWT token
-    const payload = { sub: user.id, email: user.email };
-    console.log(payload);
-    const secret=this.config.get('JWT_SECRET');
-    const token = await this.jwtService.signAsync(payload,{
-      expiresIn:  '1d',
-      secret:secret,
-    });
-   console.log(token);
-    return { access_token: token };
+
+    return this.generateToken(user);
   }
 
   /**
@@ -101,5 +100,24 @@ export class AuthService {
     const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const nanoid = customAlphabet(alphabet, 6);
     return `BNG-${nanoid()}`;
+  }
+
+  //generating jwt token
+  private async generateToken(user: any) {
+    const payload = { 
+      sub: user.playerId, 
+      email: user.email, 
+      username: user.username 
+    };
+  
+    const token = await this.jwtService.signAsync(payload, {
+      expiresIn: '1d',
+      secret: this.config.get('JWT_SECRET'),
+    });
+  
+    return { 
+      access_token: token,
+
+    };
   }
 }
