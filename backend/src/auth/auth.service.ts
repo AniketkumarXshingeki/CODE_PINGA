@@ -7,6 +7,11 @@ import { customAlphabet } from 'nanoid';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
+interface DefaultLoadout {
+  name: string;
+  gridSize: number;
+  arrangement: number[];
+}
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService, private config: ConfigService, private jwtService: JwtService) {}
@@ -45,6 +50,19 @@ export class AuthService {
 
     // 3. Generate Player ID (BNG-XXXXXX)
     const playerId = this.generatePlayerId();
+    //generate loadouts
+    const sizes = [5, 6, 7, 8, 9, 10];
+    const defaultLoadouts: DefaultLoadout[] = [];
+    for (const size of sizes) {
+    for (let i = 1; i <= 2; i++) {
+      defaultLoadouts.push({
+        name: `Starter ${size}x${size} #${i}`,
+        gridSize: size,
+        // Use the jumbled generator instead of an ordered array
+        arrangement: this.generateJumbledArrangement(size),
+      });
+    }
+  }
 
     // 4. Create user in database
     const user = await this.prisma.user.create({
@@ -54,11 +72,7 @@ export class AuthService {
         username: dto.username,
         playerId: playerId,
         loadouts: {
-        create: {
-          name: 'Alpha Squad',
-          gridSize: 5,
-          arrangement: Array.from({ length: 25 }, (_, i) => i + 1), // [1, 2, ..., 25]
-        }
+        create: defaultLoadouts
       }
     } as any,
     include: { loadouts: true } // Crucial: This returns the loadout we just made
@@ -120,4 +134,16 @@ export class AuthService {
 
     };
   }
+  private generateJumbledArrangement(size: number): number[] {
+  const totalCells = size * size;
+  // 1. Create ordered array [1, 2, 3, ..., n^2]
+  const array = Array.from({ length: totalCells }, (_, i) => i + 1);
+
+  // 2. Fisher-Yates Shuffle
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+  }
+  return array;
+}
 }

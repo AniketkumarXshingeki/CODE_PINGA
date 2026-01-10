@@ -1,1 +1,159 @@
-<p>room works!</p>
+<div class="min-h-screen bg-slate-900 text-white p-8">
+  
+  <div *ngIf="view === 'selection'" class="max-w-2xl mx-auto mt-20 text-center">
+    <h1 class="text-4xl font-black mb-12 tracking-tighter text-cyan-500">BATTLE LOBBY</h1>
+    
+    <div class="grid md:grid-cols-2 gap-8">
+      <div (click)="onCreateRoom()" class="bg-slate-800/50 border-2 border-dashed border-slate-700 p-10 rounded-3xl hover:border-cyan-500 cursor-pointer transition-all group">
+        <lucide-icon [name]="icons.Play" class="mx-auto mb-4 text-slate-500 group-hover:text-cyan-500"></lucide-icon>
+        <h3 class="text-xl font-bold">CREATE ROOM</h3>
+        <p class="text-slate-500 text-sm mt-2">Host a match and invite others</p>
+      </div>
+
+      <div class="bg-slate-800/50 border-2 border-slate-700 p-10 rounded-3xl">
+        <h3 class="text-xl font-bold mb-4">JOIN ROOM</h3>
+        <input [(ngModel)]="joinRoomId" placeholder="ENTER ROOM ID" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 mb-4 text-center font-mono">
+        <button (click)="onJoinRoom()" class="w-full bg-cyan-500 text-slate-950 py-3 rounded-xl font-bold">CONNECT</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="view === 'lobby'" class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 mt-10">
+  
+  <div class="lg:col-span-4 space-y-8">
+    
+    <div class="bg-slate-950/50 rounded-3xl p-6 border border-slate-800">
+      <h2 class="text-xs font-black tracking-widest text-cyan-500 mb-6 uppercase">Active Participants</h2>
+      <div class="space-y-4">
+        <div *ngFor="let p of participants" class="flex items-center justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-800">
+          <span class="font-bold">{{ p.username }}</span>
+          <span [class]="p.isReady ? 'text-cyan-500' : 'text-slate-600'" class="text-[10px] font-black uppercase">
+            {{ p.isReady ? 'READY' : 'PREPARING' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+<div class="bg-slate-950/50 rounded-3xl p-6 border border-slate-800">
+  
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-xl font-black uppercase tracking-tighter text-white">ROOM: {{ roomId }}</h1>
+    </div>
+    <div *ngIf="isHost" class="bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full text-[10px] font-bold border border-purple-500/20">HOST</div>
+  </div>
+
+<div *ngIf="isHost" class="mb-8">
+  <label class="block text-[10px] uppercase tracking-widest text-purple-500 font-bold mb-3">
+    {{ currentGameType ? 'Grid Size Locked' : 'Host: Select Grid Size' }}
+  </label>
+  <div class="grid grid-cols-3 gap-2">
+    <button *ngFor="let type of gameTypes" 
+      (click)="!currentGameType && confirmGameType(type)"
+      [disabled]="currentGameType"
+      [class]="currentGameType === type ? 'border-cyan-500 bg-cyan-500/10 text-cyan-500' : 'border-slate-800 bg-slate-900 text-slate-400'"
+      class="py-2 text-[10px] font-black rounded-xl border transition-all">
+      {{ type }}
+    </button>
+  </div>
+  <div *ngIf="pendingGameType && !currentGameType" 
+       class="mt-4 flex gap-2 animate-in zoom-in duration-200">
+    <button (click)="lockInGameType()" 
+      class="flex-1 bg-cyan-500 text-slate-950 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all">
+      CONFIRM {{ pendingGameType }}
+    </button>
+    <button (click)="cancelPendingType()" 
+      class="px-4 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-all">
+      <lucide-icon [name]="icons.Eye" size="14" class="rotate-45"></lucide-icon>
+    </button>
+  </div>
+</div>
+
+  <div class="mb-8" [class.opacity-40]="!currentGameType">
+    <label class="block text-[10px] uppercase tracking-widest text-cyan-500 font-bold mb-3">
+      {{ currentGameType ? 'Select Your Loadout' : 'Awaiting Grid Size...' }}
+    </label>
+<select [(ngModel)]="selectedLoadoutId" [disabled]="!currentGameType" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm outline-none focus:border-cyan-500 transition-all cursor-pointer">
+  <option value="" disabled selected>Choose a configuration</option>
+  <option *ngFor="let l of filteredLoadouts" [value]="l.id">{{ l.name }}</option>
+</select>
+  </div>
+
+  <div class="space-y-4">
+    <div *ngIf="isHost">
+      <button (click)="initializeGame()" 
+        [disabled]="!allPlayersReady || !currentGameType"
+        class="w-full py-4 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-widest hover:bg-cyan-400 transition-all disabled:opacity-30">
+        {{ !currentGameType ? 'SET SIZE FIRST' : (allPlayersReady ? 'START MATCH' : 'WAITING FOR PLAYERS') }}
+      </button>
+    </div>
+
+    <div *ngIf="!isHost">
+      <button (click)="onToggleReady()" 
+        [disabled]="!canReadyUp"
+        class="w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all border-2 disabled:opacity-30 disabled:cursor-not-allowed"
+        [ngClass]="isCurrentUserReady ? 'bg-cyan-500/10 border-cyan-500 text-cyan-500' : 'bg-slate-900 border-slate-800 text-white'">
+        
+        <span *ngIf="!currentGameType">WAITING FOR HOST</span>
+        <span *ngIf="currentGameType && !selectedLoadoutId">PICK LOADOUT</span>
+        <span *ngIf="canReadyUp">{{ isCurrentUserReady ? 'CANCEL' : 'READY' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+  </div>
+
+  <div class="lg:col-span-8 bg-slate-950/50 rounded-3xl p-8 border border-slate-800 min-h-150 flex flex-col relative overflow-hidden">
+  
+  <div class="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 blur-[100px] rounded-full -mr-32 -mt-32"></div>
+
+  <div class="flex items-center justify-between mb-10 relative">
+    <div class="flex items-center gap-4">
+      <lucide-icon [name]="icons.LayoutGrid" class="text-cyan-500"></lucide-icon>
+      <h2 class="text-2xl font-black tracking-tighter uppercase italic">Loadout Analysis</h2>
+    </div>
+
+  </div>
+
+  <div class="flex-1 flex flex-col items-center justify-center relative">
+    
+    <div *ngIf="!selectedLoadout" class="text-center group">
+      <div class="w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-800 group-hover:border-cyan-500/50 transition-all">
+        <lucide-icon [name]="icons.Eye" class="text-slate-700 group-hover:text-cyan-500" size="32"></lucide-icon>
+      </div>
+      <p class="text-slate-500 uppercase text-[10px] font-black tracking-[0.3em]">Waiting for selection...</p>
+    </div>
+
+    <div *ngIf="selectedLoadout" class="w-full h-full animate-in fade-in zoom-in duration-300">
+      <div class="mb-8">
+        <h3 class="text-5xl font-black tracking-tighter text-white uppercase mb-2">{{ selectedLoadout.name }}</h3>
+      </div>
+
+      <div [ngStyle]="{
+       'display': 'grid',
+       'grid-template-columns': 'repeat(' + selectedLoadout.gridSize + ', minmax(0, 1fr))',
+       'column-gap': '12px',   
+       'row-gap': '12px'        
+     }" 
+     class="max-w-md mx-auto aspect-square p-4 bg-slate-900/80 rounded-2xl border border-slate-800">
+  
+  <div *ngFor="let item of selectedLoadout.arrangement" 
+       class="bg-cyan-500/5 border border-cyan-500/10 flex items-center justify-center font-mono text-cyan-400 shadow-[inset_0_0_10px_rgba(6,182,212,0.05)]"
+       [style.fontSize.px]="getFontSize(selectedLoadout.gridSize)">
+    {{ item }}
+  </div>
+</div>
+
+
+    </div>
+
+  </div>
+  <button (click)="onLeaveRoom()" 
+  class="mt-4 w-full py-2 text-[10px] font-bold text-cyan-400 hover:text-red-400 transition-colors uppercase tracking-widest">
+  Leave Lobby
+</button>
+</div>
+
+</div>
+
+</div>  

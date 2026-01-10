@@ -57,19 +57,29 @@ getUsername(): string {
       return 'Commander';
     }
   }
+  getUserId(): string {
+  if (!isPlatformBrowser(this.platformId)) return '';
   
+  const token = localStorage.getItem('access_token');
+  if (!token) return '';
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    // Check 'sub' (standard JWT) or 'playerId' (common custom name)
+    return payload.sub || payload.playerId || payload.id || '';
+  } catch (e) {
+    console.error('Error decoding token for userId', e);
+    return '';
+  }
+}
   checkEmail(email: string): Observable<{available: boolean}> {
     return this.http.post<{available: boolean}>(`${this.baseUrl}/check-email`, { email });
     // return of({ available: true }).pipe(
     // delay(500)
-    //  // Uncomment this if you want to test loading states
     // );
   }
 
-  /**
-   * IMPORTANT: We handle the localStorage here so that updateLoginStatus() 
-   * finds the token successfully.
-   */
+
   register(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/register`, data).pipe(
       tap((res: any) => {

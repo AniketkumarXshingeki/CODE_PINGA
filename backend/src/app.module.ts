@@ -10,6 +10,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
 import { ConfigService } from '@nestjs/config/dist/config.service';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [AuthModule, GameModule, ProfileModule, 
@@ -22,6 +23,7 @@ import { ConfigService } from '@nestjs/config/dist/config.service';
         signOptions: { expiresIn: '1d' },
       }),
     }),
+    RoomModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

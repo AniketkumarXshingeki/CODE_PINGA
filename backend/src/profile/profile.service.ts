@@ -6,6 +6,11 @@ export class ProfileService {
     constructor(private prisma:PrismaService) {}
 
     async getUserLoadouts(playerId: string) {
+
+      if (!playerId) {
+    console.error("Fetch attempted without playerId");
+    return [];
+  }
     return this.prisma.loadout.findMany({
       where: {
         user: {

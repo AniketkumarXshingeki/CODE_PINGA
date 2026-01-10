@@ -33,7 +33,6 @@ authForm!: FormGroup;
   }
   socialLogin(platform: string) {
     console.log(`Authenticating with ${platform}...`);
-    // window.location.href = `http://localhost:3000/auth/${platform}`;
   }
   // Called when Step 1 is submitted
 goToNextStep() {
