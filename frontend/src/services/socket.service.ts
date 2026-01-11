@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { io, Socket } from 'socket.io-client';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { environment } from '../environment/environment';
 
 @Injectable({
@@ -15,8 +15,13 @@ export class SocketService {
   public participants$ = this.participantsSubject.asObservable();
   private gameTypeSubject = new BehaviorSubject<string | null>(null);
   public gameType$ = this.gameTypeSubject.asObservable();
-  private matchStartedSubject = new BehaviorSubject<boolean>(false);
+  private matchStartedSubject = new Subject<any>();
   public matchStarted$ = this.matchStartedSubject.asObservable();
+  private startCountdownSource = new Subject<void>();
+  startCountdown$ = this.startCountdownSource.asObservable();
+  // Observable for when any player calls a number
+  private numberUpdatedSource = new Subject<{ number: number; nextTurnId: string }>();
+  numberUpdated$ = this.numberUpdatedSource.asObservable();
   private roomDestroyedSubject = new BehaviorSubject<string | null>(null);
   public roomDestroyed$ = this.roomDestroyedSubject.asObservable();
 
@@ -37,22 +42,28 @@ export class SocketService {
 
     // Listen for the updated participant list from the Gateway
     this.socket.on('updateParticipants', (participants: any[]) => {
-      console.log('Real-time participants updated:', participants);
       this.participantsSubject.next(participants);
     });
 
+    this.socket.on('startCountdown', () => {
+      this.startCountdownSource.next();
+    });
+
     // Listen for the signal that the match has started
-    this.socket.on('matchStarted', () => {
-      this.matchStartedSubject.next(true);
+    this.socket.on('matchStarted', (data: any) => {
+      this.matchStartedSubject.next(data);
+    });
+
+    // Listen for the server broadcast after a number is successfully called
+    this.socket.on('numberUpdated', (data: { number: number; nextTurnId: string }) => {
+      this.numberUpdatedSource.next(data);
     });
 
     this.socket.on('gameTypeUpdated', (type: string) => {
-      console.log('Game type updated from server:', type);
       this.gameTypeSubject.next(type);
     });
     // Handle reconnections
     this.socket.on('connect', () => {
-      console.log('Connected to WebSocket Gateway');
     });
 
     this.socket.on('roomDestroyed', (message: string) => {
@@ -63,6 +74,11 @@ export class SocketService {
       this.gameTypeSubject.next(type);
     });
   }
+
+  emit(event: string, data: any) {
+    this.socket?.emit(event, data);
+  }
+
   setGameType(roomCode: string, gameType: string) {
     if (this.socket) {
       this.socket.emit('setGameType', { roomCode, gameType });
@@ -82,7 +98,7 @@ export class SocketService {
    */
   startGame(roomCode: string) {
     if (this.socket) {
-      this.socket.emit('startGame', roomCode);
+      this.socket.emit('initiateStart', roomCode);
     }
   }
   toggleReady(roomCode: string, userId: string) {
@@ -107,6 +123,5 @@ export class SocketService {
   leaveRoom(roomCode: string) {
     this.socket?.emit('leaveRoom', { roomCode });
     this.resetRoomState(); // Clear the data locally
-    this.disconnect(); // Close connection
   }
 }

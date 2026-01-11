@@ -51,7 +51,7 @@
     <button *ngFor="let type of gameTypes" 
       (click)="!currentGameType && confirmGameType(type)"
       [disabled]="currentGameType"
-      [class]="currentGameType === type ? 'border-cyan-500 bg-cyan-500/10 text-cyan-500' : 'border-slate-800 bg-slate-900 text-slate-400'"
+      [class]="pendingGameType === type ? 'border-cyan-500 bg-cyan-500/10 text-cyan-500' : 'border-slate-800 bg-slate-900 text-slate-400'"
       class="py-2 text-[10px] font-black rounded-xl border transition-all">
       {{ type }}
     </button>
@@ -84,7 +84,8 @@
       <button (click)="initializeGame()" 
         [disabled]="!allPlayersReady || !currentGameType"
         class="w-full py-4 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-widest hover:bg-cyan-400 transition-all disabled:opacity-30">
-        {{ !currentGameType ? 'SET SIZE FIRST' : (allPlayersReady ? 'START MATCH' : 'WAITING FOR PLAYERS') }}
+        <span *ngIf="isStarting" class="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-950"></span>
+        {{ isStarting ? 'Initializing...' : (!currentGameType ? 'SET SIZE FIRST' : (allPlayersReady ? 'START MATCH' : 'WAITING FOR PLAYERS')) }}
       </button>
     </div>
 
@@ -93,7 +94,7 @@
         [disabled]="!canReadyUp"
         class="w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all border-2 disabled:opacity-30 disabled:cursor-not-allowed"
         [ngClass]="isCurrentUserReady ? 'bg-cyan-500/10 border-cyan-500 text-cyan-500' : 'bg-slate-900 border-slate-800 text-white'">
-        
+        <span *ngIf="isStarting" class="animate-spin rounded-full h-5 w-5 border-b-2 border-cyan-500"></span>
         <span *ngIf="!currentGameType">WAITING FOR HOST</span>
         <span *ngIf="currentGameType && !selectedLoadoutId">PICK LOADOUT</span>
         <span *ngIf="canReadyUp">{{ isCurrentUserReady ? 'CANCEL' : 'READY' }}</span>

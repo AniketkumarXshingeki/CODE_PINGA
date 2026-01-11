@@ -1,1 +1,91 @@
-<p>board works!</p>
+<div class="min-h-screen bg-slate-950 text-white p-6 font-sans">
+  <div class="flex justify-between text-[10px] font-black tracking-widest uppercase mb-2">
+    <span class="text-cyan-500">Battle Progress</span>
+    <span [class.text-green-400]="linesCount >= 7" class="text-white">
+      {{ linesCount }} / 7 LINES
+    </span>
+  </div>
+  <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+    <div class="h-full bg-cyan-500 transition-all duration-700 ease-out shadow-[0_0_10px_rgba(6,182,212,0.5)]" 
+         [style.width.%]="(linesCount / 7) * 100"></div>
+  </div>
+  <div class="max-w-7xl mx-auto grid grid-cols-12 gap-8 h-[80vh]">
+    
+    <div class="col-span-12 lg:col-span-8 flex flex-col justify-center items-center bg-slate-900/50 rounded-3xl border border-slate-800 p-8">
+      
+      <div class="grid grid-cols-7 gap-2 w-full max-w-lg aspect-square">
+        @for (cell of board; track $index) {
+          <button 
+            (click)="onCellClick(cell.value)"
+            [disabled]="!isMyTurn || cell.marked"
+            [ngClass]="{
+              'bg-slate-800 border-slate-700 hover:border-cyan-500': !cell.marked && selectedNumber !== cell.value,
+              'bg-cyan-500 text-slate-950 border-white scale-105 z-10': selectedNumber === cell.value,
+              'bg-slate-950 border-cyan-900 text-slate-600 opacity-50 cursor-not-allowed': cell.marked
+            }"
+            class="relative flex items-center justify-center font-mono text-xl font-bold rounded-xl border-2 transition-all duration-200">
+            {{ cell.value }}
+            
+            @if (cell.marked) {
+              <div class="absolute h-1 w-full bg-red-500 rotate-45 opacity-60"></div>
+            }
+          </button>
+        }
+      </div>
+
+      <div class="mt-10 h-20 w-full max-w-md flex flex-col items-center">
+        @if (isMyTurn && selectedNumber) {
+          <div class="animate-in slide-in-from-bottom duration-300 w-full">
+            <p class="text-center text-xs text-cyan-500 uppercase tracking-widest mb-3">Confirm Number: {{selectedNumber}}</p>
+            <button (click)="confirmSelection()"
+              class="w-full py-4 bg-cyan-500 text-slate-950 font-black rounded-2xl hover:bg-white transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+              TRANSMIT SELECTION
+            </button>
+          </div>
+        } @else if (isMyTurn) {
+          <p class="text-slate-500 animate-pulse uppercase text-sm tracking-tighter">Your Turn: Select a number from the grid</p>
+        } @else {
+          <p class="text-slate-600 uppercase text-sm tracking-tighter italic">Waiting for current caller...</p>
+        }
+      </div>
+    </div>
+
+    <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+      
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+        <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Live Status</h3>
+        <div class="space-y-3">
+          @for (p of matchData.participants; track p.userId) {
+            <div [ngClass]="{
+                'border-cyan-500 bg-cyan-500/10': currentTurnId === p.userId,
+                'border-slate-800 bg-slate-950/50': currentTurnId !== p.userId
+              }"
+              class="flex items-center justify-between p-4 rounded-2xl border transition-all duration-500">
+              
+              <div class="flex items-center gap-3">
+                <div [class]="currentTurnId === p.userId ? 'bg-cyan-500' : 'bg-slate-700'" class="w-2 h-2 rounded-full"></div>
+                <span class="font-bold" [class.text-cyan-400]="currentTurnId === p.userId">{{ p.username }}</span>
+              </div>
+
+              @if (currentTurnId === p.userId) {
+                <span class="text-[10px] font-black text-cyan-500 animate-pulse">CALLING...</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="flex-1 bg-slate-950/50 border border-slate-800 rounded-3xl p-6 overflow-hidden flex flex-col">
+        <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Transmission Log</h3>
+        <div class="flex flex-wrap gap-2 overflow-y-auto">
+          @for (num of drawnNumbers; track $index) {
+            <div class="w-10 h-10 flex items-center justify-center bg-slate-800 rounded-lg text-xs font-mono border border-slate-700">
+              {{ num }}
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -12,7 +12,7 @@ import { Friends } from './friends/friends';
 export const routes: Routes = [
    { path: '', component: Home},
    { path: 'login', component: Login },
-   { path: 'play', component: Board },
+   { path: 'board/:id', component: Board },
    { path: 'home', component: Home},
    { path: 'history', component:History},
    { path: 'room', component:Room},

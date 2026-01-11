@@ -56,20 +56,17 @@ model Room {
   roomCode  String       @unique
   hostId    String
   status    RoomStatus   @default(ACTIVE) // Replaced the boolean
-  sessions  GameSession[]
   createdAt DateTime     @default(now())
 }
 
 model GameSession {
   id             String         @id @default(uuid())
-  roomId         String
-  room           Room           @relation(fields: [roomId], references: [id])
-  
-  // Tracks if this is the 1st, 2nd, or 10th game in this specific room
-  roundNumber    Int            @default(1) 
+  gridSize       Int            
   
   drawnNumbers   Int[]          // The sequence of balls
+  turnOrder      String[]       // Array of UserIds in calling order [P1, P2, P3]
   playerResults  MatchHistory[]
+  winnerId       String?        // ID of the person who hit the line goal first
   createdAt      DateTime       @default(now())
 }
 model MatchHistory {
@@ -81,5 +78,5 @@ model MatchHistory {
   
   position     Int?
   loadout      Json        
-  playerClicks Json        
+  linesCount   Int         @default(0) // Final count of completed lines
 }

@@ -30,7 +30,7 @@ import { RoomService } from '../../services/room.service';
   templateUrl: './room.html',
   styleUrl: './room.css',
 })
-export class Room implements OnInit, OnDestroy {
+export class Room implements OnInit {
   roomId: string | null = null;
   isHost: boolean = false;
   participants: any[] = []; // List of players in room
@@ -40,6 +40,7 @@ export class Room implements OnInit, OnDestroy {
   currentGameType: string | null = null;
   gameTypes = ['5x5', '6x6', '7x7', '8x8', '9x9', '10x10'];
   pendingGameType: string | null = null;
+  isStarting: boolean = false;
   readonly icons = { ChevronDown, LayoutGrid, Play, Users, Monitor, Info, Eye };
   // View States
   view: 'selection' | 'lobby' = 'selection';
@@ -67,6 +68,7 @@ export class Room implements OnInit, OnDestroy {
           this.view = 'lobby';
           this.connectToRoomLogic(idFromUrl);
         } else {
+          this.roomId = null;
           this.view = 'selection';
         }
       });
@@ -85,6 +87,25 @@ export class Room implements OnInit, OnDestroy {
       this.socketService.gameType$.subscribe((type) => {
         this.currentGameType = type;
       });
+
+      this.socketService.startCountdown$.subscribe(() => {
+        this.isStarting = true;
+        this.autoSubmitLoadout();
+      });
+
+      this.socketService.matchStarted$.subscribe((data) => {
+        this.isStarting = false;
+        // Navigate to the game route and pass the data via state
+        if( this.roomId ){
+        this.router.navigate(['/board', this.roomId], { 
+        state: { matchData: {
+          ...data,
+          myLoadout: this.selectedLoadout.arrangement
+        } } 
+        });
+      }
+      });
+
       this.socketService.roomDestroyed$.subscribe((message) => {
         if (message) {
           alert(message);
@@ -128,10 +149,6 @@ export class Room implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy() {
-    this.socketService.disconnect();
-  }
-
   onCreateRoom() {
     this.roomService.createRoom().subscribe({
     next: (room) => {
@@ -155,6 +172,8 @@ export class Room implements OnInit, OnDestroy {
         // Force a hard refresh to clear all Socket/BehaviorSubject states
         window.location.reload();
       });
+    } else{
+        this.router.navigate(['/room']);
     }
   }
 
@@ -237,9 +256,17 @@ export class Room implements OnInit, OnDestroy {
   }
 
   initializeGame() {
-    console.log('Starting game...');
     if (this.isHost && this.roomId) {
       this.socketService.startGame(this.roomId);
     }
   }
+  private autoSubmitLoadout() {
+  if (this.roomId && this.selectedLoadout) {
+    this.socketService.emit('submitLoadout', {
+      roomCode: this.roomId,
+      userId: this.authService.getUserId(),
+      loadout: this.selectedLoadout.arrangement
+    });
+  }
+}
 }

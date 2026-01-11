@@ -20,7 +20,6 @@ export class RoomsService {
   async findRoomByCode(roomCode: string) {
     const room = await this.prisma.room.findUnique({
       where: { roomCode: roomCode.toUpperCase() },
-      include: { sessions: true }
     });
 
     if (!room) throw new NotFoundException('Room not found');
