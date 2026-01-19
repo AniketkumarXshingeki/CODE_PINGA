@@ -1,36 +1,41 @@
 <div class="min-h-screen bg-slate-950 text-white p-6 font-sans">
   <div class="flex justify-between text-[10px] font-black tracking-widest uppercase mb-2">
     <span class="text-cyan-500">Battle Progress</span>
-    <span [class.text-green-400]="linesCount >= 7" class="text-white">
-      {{ linesCount }} / 7 LINES
+    <span [class.text-green-400]="linesCount >= gametype" class="text-white">
+      {{ linesCount }} / {{gametype}} LINES
     </span>
   </div>
   <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
     <div class="h-full bg-cyan-500 transition-all duration-700 ease-out shadow-[0_0_10px_rgba(6,182,212,0.5)]" 
-         [style.width.%]="(linesCount / 7) * 100"></div>
+         [style.width.%]="(linesCount / gametype) * 100"></div>
   </div>
   <div class="max-w-7xl mx-auto grid grid-cols-12 gap-8 h-[80vh]">
     
     <div class="col-span-12 lg:col-span-8 flex flex-col justify-center items-center bg-slate-900/50 rounded-3xl border border-slate-800 p-8">
       
-      <div class="grid grid-cols-7 gap-2 w-full max-w-lg aspect-square">
-        @for (cell of board; track $index) {
-          <button 
-            (click)="onCellClick(cell.value)"
-            [disabled]="!isMyTurn || cell.marked"
-            [ngClass]="{
-              'bg-slate-800 border-slate-700 hover:border-cyan-500': !cell.marked && selectedNumber !== cell.value,
-              'bg-cyan-500 text-slate-950 border-white scale-105 z-10': selectedNumber === cell.value,
-              'bg-slate-950 border-cyan-900 text-slate-600 opacity-50 cursor-not-allowed': cell.marked
-            }"
-            class="relative flex items-center justify-center font-mono text-xl font-bold rounded-xl border-2 transition-all duration-200">
-            {{ cell.value }}
-            
-            @if (cell.marked) {
-              <div class="absolute h-1 w-full bg-red-500 rotate-45 opacity-60"></div>
-            }
-          </button>
+      <div 
+        class="grid gap-2 w-full max-w-lg aspect-square"
+        [style.grid-template-columns]="'repeat(' + gametype + ', minmax(0, 1fr))'"
+       [style.grid-template-rows]="'repeat(' + gametype + ', minmax(0, 1fr))'"
+      >
+      @for (cell of board; track $index) {
+        <button 
+          (click)="onCellClick(cell.value)"
+          [disabled]="!isMyTurn || cell.marked || winner"
+          [ngClass]="{
+            'bg-slate-800 border-slate-700 hover:border-cyan-500': !cell.marked && selectedNumber !== cell.value,
+            'bg-cyan-500 text-slate-950 border-white scale-105 z-10': selectedNumber === cell.value,
+            'bg-slate-950 border-cyan-900 text-slate-600 opacity-50 cursor-not-allowed': cell.marked
+          }"
+        class="relative flex items-center justify-center font-mono text-lg lg:text-xl font-bold rounded-xl border-2 transition-all duration-200">
+      
+        {{ cell.value }}
+      
+        @if (cell.marked) {
+          <div class="absolute h-1 w-full bg-red-500 rotate-45 opacity-60"></div>
         }
+        </button>
+      }
       </div>
 
       <div class="mt-10 h-20 w-full max-w-md flex flex-col items-center">
@@ -57,19 +62,32 @@
         <div class="space-y-3">
           @for (p of matchData.participants; track p.userId) {
             <div [ngClass]="{
-                'border-cyan-500 bg-cyan-500/10': currentTurnId === p.userId,
-                'border-slate-800 bg-slate-950/50': currentTurnId !== p.userId
+                      'border-cyan-500 bg-cyan-500/10': currentTurnId === p.userId && !winner,
+                      'border-yellow-500 bg-yellow-500/20 animate-bounce shadow-[0_0_15px_rgba(234,179,8,0.3)]': winner?.id === p.userId,
+                      'border-slate-800 bg-slate-950/50 opacity-50': winner && winner.id !== p.userId,
+                      'border-slate-800 bg-slate-950/50': currentTurnId !== p.userId && !winner
               }"
               class="flex items-center justify-between p-4 rounded-2xl border transition-all duration-500">
               
               <div class="flex items-center gap-3">
-                <div [class]="currentTurnId === p.userId ? 'bg-cyan-500' : 'bg-slate-700'" class="w-2 h-2 rounded-full"></div>
-                <span class="font-bold" [class.text-cyan-400]="currentTurnId === p.userId">{{ p.username }}</span>
-              </div>
+                @if (winner?.id === p.userId) {
+            <span class="text-yellow-400 animate-spin-slow">★</span>
+          } @else {
+            <div [class]="currentTurnId === p.userId ? 'bg-cyan-500' : 'bg-slate-700'" class="w-2 h-2 rounded-full"></div>
+          }
+            <span class="font-bold tracking-tight" 
+                [ngClass]="{
+                  'text-yellow-400 text-lg': winner?.id === p.userId,
+                  'text-cyan-400': currentTurnId === p.userId && !winner
+                }">
+            {{ p.username }}
+          </span>              </div>
 
-              @if (currentTurnId === p.userId) {
-                <span class="text-[10px] font-black text-cyan-500 animate-pulse">CALLING...</span>
-              }
+          @if (winner?.id === p.userId) {
+            <span class="text-[10px] font-black text-yellow-500 animate-pulse tracking-widest">CHAMPION</span>
+          } @else if (currentTurnId === p.userId && !winner) {
+            <span class="text-[10px] font-black text-cyan-500 animate-pulse">CURRENT TURN</span>
+          }
             </div>
           }
         </div>
@@ -87,5 +105,27 @@
       </div>
 
     </div>
+    @if (winner) {
+  <div class="fixed inset-0 z-200 flex items-center justify-center bg-slate-950/10 animate-in fade-in duration-1000">
+    <div class="text-center p-12 bg-slate-900 border-2 border-cyan-500 rounded-[40px] shadow-[0_0_50px_rgba(6,182,212,0.3)] max-w-sm w-full mx-4">
+      <div class="mb-6 inline-flex items-center justify-center w-20 h-20 bg-cyan-500 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+        <lucide-icon [name]="icons.Play" class="text-slate-950 fill-current" size="32"></lucide-icon>
+      </div>
+      
+      <h2 class="text-xs font-black tracking-[0.3em] text-cyan-500 uppercase mb-2">Battle Concluded</h2>
+      <h1 class="text-4xl font-black text-white uppercase tracking-tighter mb-1">
+        {{ winner.id === myUserId ? 'Victory' : 'Defeat' }}
+      </h1>
+      <p class="text-slate-400 font-medium mb-8">
+        {{ winner.name }} achieved 7 lines
+      </p>
+
+      <button (click)="exitToLobby()" 
+        class="w-full py-4 bg-white text-slate-950 font-black rounded-2xl hover:bg-cyan-400 transition-all uppercase tracking-widest text-xs">
+        Return to Lobby
+      </button>
+    </div>
+  </div>
+}
   </div>
 </div>

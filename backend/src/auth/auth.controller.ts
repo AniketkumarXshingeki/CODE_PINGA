@@ -1,7 +1,8 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Res } from '@nestjs/common';
 import { RegisterDto, CheckEmailDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -19,7 +20,21 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() dto: LoginDto) {
-    return this.authService.validateUser(dto);
+  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) response:Response) {
+    const accessToken = await this.authService.validateUser(dto);
+    // Set the Cookie
+    response.cookie('jwt', accessToken, {
+    httpOnly: true, // JavaScript cannot read this (prevents XSS)
+    secure: process.env.NODE_ENV === 'production', // Send only over HTTPS in prod
+    sameSite: 'strict', // CSRF protection
+    maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+  });
+    return { message: 'Login successful' };
   }
+
+  @Post('logout')
+  async logout(@Res({ passthrough: true }) response: Response) {
+  response.clearCookie('jwt');
+  return { message: 'Logged out' };
+}
 }

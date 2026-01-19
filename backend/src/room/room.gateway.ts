@@ -7,11 +7,12 @@ import {
 import { Server, Socket } from 'socket.io';
 import { RoomsService } from './room.service';
 import { GameService } from './game.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class RoomsGateway implements OnGatewayDisconnect {
   @WebSocketServer() server: Server;
-  constructor(private readonly roomsService: RoomsService, private readonly gameService: GameService) {}
+  constructor(private readonly roomsService: RoomsService, private readonly gameService: GameService, private readonly prisma: PrismaService) {}
   // Track users in memory for the lobby list
   private activeRooms = new Map<
     string,
@@ -31,45 +32,68 @@ export class RoomsGateway implements OnGatewayDisconnect {
     }
   >();
 
-  @SubscribeMessage('joinRoom')
-  handleJoin(
+@SubscribeMessage('joinRoom')
+ async handleJoin(
     client: Socket,
     payload: { roomCode: string; userId: string; username: string },
   ) {
     const { roomCode, userId, username } = payload;
+    const MAX_PLAYERS = 5;
 
-    client.join(roomCode);
-
-    // Update local state
-    if (!this.activeRooms.has(roomCode)) {
-      this.activeRooms.set(roomCode, {
-        participants: [],
-        gameType: null,
-        hostId: userId,
-      });
+    try{
+    const roomCheck = await this.prisma.room.findUnique({ where: { roomCode } });
+    if (!roomCheck || roomCheck.status !== 'ACTIVE') {
+      throw new Error('Room not found or inactive');
     }
+    const isAlreadyInRoom = roomCheck?.participants.includes(userId);
 
-    const room = this.activeRooms.get(roomCode);
-    if (room && !room.participants.find((p) => p.userId === userId)) {
-      // Find if user already exists (e.g. on refresh) and update their socketId
-      const existingPlayer = room.participants.find((p) => p.userId === userId);
-      if (existingPlayer) {
-        existingPlayer.socketId = client.id;
-      } else {
-        room.participants.push({
-          socketId: client.id,
-          userId,
-          username,
-          isReady: false,
+    if (!isAlreadyInRoom){
+        await this.prisma.room.update({
+          where: {
+            roomCode: roomCode,
+            status: 'ACTIVE',
+            participantCount: { lt: MAX_PLAYERS },
+            NOT: { participants: { has: userId } }
+          },
+          data: {
+            participants: { push: userId },
+            participantCount: { increment: 1 }
+          }
         });
       }
-      // Broadcast updated list to everyone in the room
-      this.server.to(roomCode).emit('updateParticipants', room?.participants);
-      this.server.to(roomCode).emit('gameTypeUpdated', room?.gameType);
-      console.log('Broadcast Sent:', room);
-    }
-  }
+        client.join(roomCode);
 
+        // Update local state
+        if (!this.activeRooms.has(roomCode)) {
+          this.activeRooms.set(roomCode, {
+            participants: [],
+            gameType: null,
+            hostId: roomCheck.hostId,
+          });
+        }
+
+        const room = this.activeRooms.get(roomCode);
+        if (room) {
+          // Find if user already exists (e.g. on refresh) and update their socketId
+          const existingPlayerIndex = room.participants.findIndex((p) => p.userId === userId);
+          if (existingPlayerIndex !== -1) {
+            room.participants[existingPlayerIndex].socketId = client.id;
+          } else {
+            room.participants.push({
+              socketId: client.id,
+              userId,
+              username,
+              isReady: false,
+            });
+          }
+          // Broadcast updated list to everyone in the room
+          this.server.to(roomCode).emit('updateParticipants', room?.participants);
+          this.server.to(roomCode).emit('gameTypeUpdated', room?.gameType);
+        }
+      } catch (error) {
+        client.emit('joinError', 'Unable to join room. It may be full or inactive.');
+      }
+}
   // Listener for manual "Leave" button click
   @SubscribeMessage('leaveRoom')
   async handleLeaveRoom(client: Socket, roomCode: string) {
@@ -146,6 +170,11 @@ async handleSubmitLoadout(
   const allLoadoutsReceived = room.participants.every(p => p.loadout !== undefined);
 
   if (allLoadoutsReceived) {
+
+    await this.prisma.room.update({
+      where: { roomCode: payload.roomCode },
+      data: { status: 'IN_PROGRESS' }
+    });
     // 3. Use your GameService to save the session to Prisma
     // (Notice how we just pass the updated room.participants directly now)
     const gameData = await this.gameService.initializeGame(
@@ -163,13 +192,27 @@ async handleSubmitLoadout(
     this.server.to(payload.roomCode).emit('matchStarted', {
       sessionId: room.sessionId,
       turnOrder: room.turnOrder,
-      activeTurnId: room.turnOrder[0]
+      activeTurnId: room.turnOrder[0],
+      participants: room.participants.map(p => ({
+        userId: p.userId,
+        username: p.username,
+      })),
     });
   }
 }
 
 @SubscribeMessage('callNumber')
 async handleCallNumber(client: Socket, payload: { roomCode: string, number: number }) {
+
+  const dbRoom = await this.prisma.room.findUnique({
+    where: { roomCode: payload.roomCode },
+    select: { status: true }
+  });
+
+  if (!dbRoom || dbRoom.status !== 'IN_PROGRESS') {
+    client.emit('error', 'Game has not started or has already ended.');
+    return;
+  }
   const room = this.activeRooms.get(payload.roomCode);
   if (!room || room.activeTurnIndex === undefined || !room.turnOrder || !room.sessionId) return;
 
@@ -190,6 +233,25 @@ async handleCallNumber(client: Socket, payload: { roomCode: string, number: numb
     number: payload.number,
     nextTurnId: room.turnOrder[room.activeTurnIndex]
   });
+}
+
+@SubscribeMessage('claimWin')
+async handleClaimWin(client: Socket, payload: { roomCode: string, sessionId: string }) {
+  const room = this.activeRooms.get(payload.roomCode);
+  if (!room || room.sessionId !== payload.sessionId) return;
+
+  const winner = room.participants.find(p => p.socketId === client.id);
+
+  if (winner) {
+    // Notify everyone in the room who won
+    this.server.to(payload.roomCode).emit('matchEnded', {
+      winnerId: winner.userId,
+      winnerName: winner.username
+    });
+
+    // Optional: Clean up room from memory or mark as inactive
+    this.activeRooms.delete(payload.roomCode);
+  }
 }
   
   private async processDeparture(client: Socket, roomCode: string) {
@@ -215,9 +277,36 @@ async handleCallNumber(client: Socket, payload: { roomCode: string, number: numb
       this.activeRooms.delete(roomCode);
     } else {
       // Guest leaves: just update memory and broadcast list
+        try {
+      // Get fresh data to ensure we filter accurately
+      const currentDbRoom = await this.prisma.room.findUnique({ 
+        where: { roomCode },
+        select: { participants: true } 
+      });
+
+      if (currentDbRoom) {
+        await this.prisma.room.update({
+          where: { roomCode },
+          data: {
+            participants: {
+              // Filters the array in DB to remove this specific user
+              set: currentDbRoom.participants.filter(id => id !== player.userId)
+            },
+            participantCount: { decrement: 1 }
+          }
+        });
+      }
+
+      // Update Local Memory
       room.participants = room.participants.filter(p => p.socketId !== client.id);
+      
+      // Notify remaining players
       this.server.to(roomCode).emit('updateParticipants', room.participants);
+
+    } catch (error) {
+      console.error('Error updating DB on guest departure:', error);
     }
+  }
 
     client.leave(roomCode);
   }

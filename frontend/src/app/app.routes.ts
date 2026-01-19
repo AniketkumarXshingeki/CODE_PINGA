@@ -14,11 +14,12 @@ export const routes: Routes = [
    { path: 'login', component: Login },
    { path: 'board/:id', component: Board },
    { path: 'home', component: Home},
-   { path: 'history', component:History},
    { path: 'room', component:Room},
+   { path: 'history', component:History},
+   { path: 'history:id', component:History},
    { path: 'room/:id', component: Room },
    { path: 'about', component:About},
    { path: 'register', component:Login},
    { path: 'player', component:Player},
-   { path:'friends', component:Friends}
+   { path: 'friends', component:Friends}
 ];

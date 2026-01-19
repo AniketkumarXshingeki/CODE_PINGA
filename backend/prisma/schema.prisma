@@ -52,11 +52,13 @@ enum RoomStatus {
 }
 
 model Room {
-  id        String       @id @default(uuid())
-  roomCode  String       @unique
-  hostId    String
-  status    RoomStatus   @default(ACTIVE) // Replaced the boolean
-  createdAt DateTime     @default(now())
+  id                String       @id @default(uuid())
+  roomCode          String       @unique
+  hostId            String
+  status            RoomStatus   @default(ACTIVE) // Replaced the boolean
+  createdAt         DateTime     @default(now())
+  participants      String[]
+  participantCount  Int
 }
 
 model GameSession {

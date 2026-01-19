@@ -1,24 +1,15 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { environment } from '../environment/environment';
-
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('access_token');
-  
-  // 1. Define which URL base we want to protect
-  const isBackendRequest = req.url.startsWith(environment.apiUrl);
-  
-  // 2. Define public routes that should NEVER have a token (optional but cleaner)
-  const isPublicRoute = req.url.includes('/auth/login') || req.url.includes('/auth/register');
-
-  // 3. Only add the token if it's our backend AND not a public route
-  if (token && isBackendRequest && !isPublicRoute) {
-    const authReq = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    // Clone the request to include cookies
+    const authReq = request.clone({
+      withCredentials: true // <--- This sends the HttpOnly cookie to backend
     });
-    return next(authReq);
-  }
 
-  return next(req);
-};
+    return next.handle(authReq);
+  }
+}

@@ -13,6 +13,8 @@ export class RoomsService {
         roomCode,
         hostId: hostId,
         status: 'ACTIVE',
+        participants:[hostId],
+        participantCount: 1,
       },
     });
   }

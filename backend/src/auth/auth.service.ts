@@ -98,7 +98,6 @@ export class AuthService {
 
     // 2. Compare passwords
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-    console.log(dto.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -120,7 +119,6 @@ export class AuthService {
   private async generateToken(user: any) {
     const payload = { 
       sub: user.playerId, 
-      email: user.email, 
       username: user.username 
     };
   

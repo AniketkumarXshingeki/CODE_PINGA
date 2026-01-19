@@ -84,7 +84,6 @@ getUsername(): string {
     return this.http.post(`${this.baseUrl}/register`, data).pipe(
       tap((res: any) => {
         if (res.access_token) {
-          localStorage.setItem('access_token', res.access_token);
           this.updateLoginStatus();
         }
       })
@@ -122,7 +121,6 @@ getUsername(): string {
     return this.http.post(`${this.baseUrl}/login`, credentials).pipe(
       tap((res: any) => {
         if (res.access_token) {
-          localStorage.setItem('access_token', res.access_token);
           this.updateLoginStatus();
         }
       })

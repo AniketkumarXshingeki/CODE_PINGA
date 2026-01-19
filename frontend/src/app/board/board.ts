@@ -4,10 +4,11 @@ import { SocketService } from '../../services/socket.service';
 import { AuthService } from '../../services/auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule, Play } from 'lucide-angular';
 
 @Component({
   selector: 'app-board',
-  imports: [CommonModule],
+  imports: [CommonModule,LucideAngularModule],
   templateUrl: './board.html',
   styleUrl: './board.css',
 })
@@ -16,6 +17,7 @@ export class Board implements OnInit {
   matchData: any;
   board: { value: number; marked: boolean }[] = [];
   linesCount: number = 0;
+  gametype:number =0;
   // Selection Logic
   selectedNumber: number | null = null;
   drawnNumbers: number[] = [];
@@ -23,6 +25,9 @@ export class Board implements OnInit {
   // Turn Logic
   currentTurnId: string = '';
   myUserId: string = '';
+  winner: { id: string; name: string } | null = null;
+  readonly icons = { Play };
+
 
   constructor(
     private router: Router,
@@ -32,6 +37,7 @@ export class Board implements OnInit {
   ) {
     const navigation = this.router.getCurrentNavigation();
     this.matchData = navigation?.extras.state?.['matchData'];
+    console.log(this.matchData);
     this.myUserId = this.authService.getUserId();
   }
 
@@ -51,17 +57,30 @@ export class Board implements OnInit {
       marked: false
     }));
 
+    this.gametype = Math.sqrt(this.board.length);
+
     // Listen for numbers called by anyone
     this.socketService.numberUpdated$
       .pipe(takeUntilDestroyed(this.destroyRef)) // This is the "Safety Valve"
       .subscribe((data) => {
         this.handleIncomingNumber(data.number, data.nextTurnId);
       });
+
+    this.socketService.on('matchEnded', (data: { winnerId: string; winnerName: string }) => {
+    this.winner = { id: data.winnerId, name: data.winnerName };
+      });
+
+      
   }
 
   get isMyTurn(): boolean {
     return this.myUserId === this.currentTurnId;
   }
+
+  get gridSize(): number {
+  // If board has 49 items, this returns 7. If 25 items, returns 5.
+  return Math.sqrt(this.board.length);
+}
 
   onCellClick(num: number) {
     if (!this.isMyTurn) return;
@@ -135,6 +154,10 @@ private checkBingo() {
       sessionId: this.matchData.sessionId 
     });
   }
+}
+
+exitToLobby() {
+  this.router.navigate(['/room']);
 }
 
 }

@@ -79,6 +79,10 @@ export class SocketService {
     this.socket?.emit(event, data);
   }
 
+  on(event: string, callback: (data: any) => void) {
+    this.socket?.on(event, callback);
+  }
+
   setGameType(roomCode: string, gameType: string) {
     if (this.socket) {
       this.socket.emit('setGameType', { roomCode, gameType });
