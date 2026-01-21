@@ -10,16 +10,16 @@ export class RoomService {
   constructor(private http: HttpClient) {}
 
   createRoom(): Observable<any> {
-    return this.http.post<any>(`${this.API_URL}/create`, {});
+    return this.http.post<any>(`${this.API_URL}/create`, {withCredentials: true});
   }
   
   verifyRoom(code: string): Observable<any> {
-    return this.http.get<any>(`${this.API_URL}/${code}`);
+    return this.http.get<any>(`${this.API_URL}/${code}`, { withCredentials: true });
   }
 
   closeRoom(code: string): Observable<any> {
   // Sending a patch request to update status to 'closed'
-    return this.http.patch<any>(`${this.API_URL}/${code}/close`, {});
+    return this.http.patch<any>(`${this.API_URL}/${code}/close`, {}, { withCredentials: true });
   }
 
 }

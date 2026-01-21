@@ -1,15 +1,10 @@
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { environment } from '../environment/environment';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    // Clone the request to include cookies
-    const authReq = request.clone({
-      withCredentials: true // <--- This sends the HttpOnly cookie to backend
-    });
+import { HttpInterceptorFn } from '@angular/common/http';
 
-    return next.handle(authReq);
-  }
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  // Clone the request to enable cookies (HttpOnly)
+  const authReq = req.clone({
+    withCredentials: true
+  });
+
+  return next(authReq);
 }

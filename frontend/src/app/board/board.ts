@@ -24,7 +24,6 @@ export class Board implements OnInit {
   private destroyRef = inject(DestroyRef);
   // Turn Logic
   currentTurnId: string = '';
-  myUserId: string = '';
   winner: { id: string; name: string } | null = null;
   readonly icons = { Play };
 
@@ -37,8 +36,10 @@ export class Board implements OnInit {
   ) {
     const navigation = this.router.getCurrentNavigation();
     this.matchData = navigation?.extras.state?.['matchData'];
-    console.log(this.matchData);
-    this.myUserId = this.authService.getUserId();
+  }
+
+  get myUserId(): string {
+    return this.authService.userId;
   }
 
   ngOnInit() {

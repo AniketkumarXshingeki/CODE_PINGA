@@ -21,7 +21,7 @@ export class LoadoutService {
 
   fetchLoadouts(): Observable<Loadout[]> {
     this.loadoutsSubject.next([]);
-    return this.http.get<Loadout[]>(`${this.baseUrl}/profile/loadout`).pipe(
+    return this.http.get<Loadout[]>(`${this.baseUrl}/profile/loadout`, { withCredentials: true }).pipe(
       tap(data => this.loadoutsSubject.next(data))
     );
   }

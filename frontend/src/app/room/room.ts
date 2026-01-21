@@ -119,8 +119,8 @@ export class Room implements OnInit {
     // First, verify the room exists in the Database via REST
     this.roomService.verifyRoom(code).subscribe({
       next: (roomData) => {
-        const username = this.authService.getUsername();
-        const userId = this.authService.getUserId(); // Ensure this method exists in your AuthService
+        const username = this.authService.username;
+        const userId = this.authService.userId; // Ensure this method exists in your AuthService
         this.roomHostId = roomData.hostId;
         // Identify if current user is the host
         this.isHost = roomData.hostId === userId;
@@ -215,7 +215,7 @@ export class Room implements OnInit {
   }
   onToggleReady() {
     if (this.roomId) {
-      const userId = this.authService.getUserId();
+      const userId = this.authService.userId;
       this.socketService.toggleReady(this.roomId, userId);
     }
   }
@@ -225,7 +225,7 @@ export class Room implements OnInit {
     if (!this.participants) return false;
 
     const currentUser = this.participants.find(
-      (p) => p.username === this.authService.getUsername()
+      (p) => p.username === this.authService.username
     );
 
     return !!currentUser?.isReady;
@@ -264,7 +264,7 @@ export class Room implements OnInit {
   if (this.roomId && this.selectedLoadout) {
     this.socketService.emit('submitLoadout', {
       roomCode: this.roomId,
-      userId: this.authService.getUserId(),
+      userId: this.authService.userId,
       loadout: this.selectedLoadout.arrangement
     });
   }

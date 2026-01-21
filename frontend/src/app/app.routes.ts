@@ -16,7 +16,7 @@ export const routes: Routes = [
    { path: 'home', component: Home},
    { path: 'room', component:Room},
    { path: 'history', component:History},
-   { path: 'history:id', component:History},
+   { path: 'history/:id', component:History},
    { path: 'room/:id', component: Room },
    { path: 'about', component:About},
    { path: 'register', component:Login},

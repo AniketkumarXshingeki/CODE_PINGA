@@ -11,12 +11,11 @@ import { LucideAngularModule, LogOut, User, LayoutGrid, X, AlertTriangle } from 
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.css'],
 })
-export class Navbar implements OnInit {
+export class Navbar {
   // Added X and AlertTriangle icons
   readonly icons = { LogOut, User, LayoutGrid, X, AlertTriangle };
   
-  isLoggedIn = false;
-  username = '';
+
   showLogoutConfirm = false; // Controls the modal visibility
 
   constructor(
@@ -25,13 +24,12 @@ export class Navbar implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
-  ngOnInit(): void {
-    this.authService.isLoggedIn$.subscribe((status) => {
-      this.isLoggedIn = status;
-      if (status) {
-        this.username = this.authService.getUsername();
-      }
-    });
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn;
+  }
+
+  get username(): string {
+    return this.authService.username;
   }
 
   // Opens the modal
@@ -45,9 +43,17 @@ export class Navbar implements OnInit {
   }
 
   // The actual logout logic
-  confirmLogout(): void {
-    this.showLogoutConfirm = false;
-    this.authService.logout();
-    this.router.navigate(['/']);
+confirmLogout(): void {
+    // We must subscribe because it sends a POST request to the backend now
+    this.authService.logout().subscribe({
+      next: () => {
+        this.showLogoutConfirm = false;
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        console.error('Logout failed', err);
+        this.showLogoutConfirm = false; // Close modal anyway
+      }
+    });
   }
 }

@@ -2,8 +2,8 @@
   <nav class="flex items-center justify-between px-8 py-6 w-full max-w-7xl mx-auto z-50 relative">
     
     <a routerLink="/" class="flex items-center gap-2 cursor-pointer">
-      <div class="w-8 h-8 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center font-bold text-lg shadow-lg shadow-cyan-500/20">P</div>
-      <span class="text-2xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">INGA</span>
+      <div class="w-8 h-8 bg-linear-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center font-bold text-lg shadow-lg shadow-cyan-500/20">P</div>
+      <span class="text-2xl font-bold tracking-wider bg-clip-text text-transparent bg-linear-to-r from-white to-slate-400">INGA</span>
     </a>
 
     <div class="hidden md:flex items-center gap-8 text-slate-300 font-medium">
@@ -16,13 +16,13 @@
     <div class="flex items-center gap-4">
       <ng-container *ngIf="!isLoggedIn">
         <a routerLink="/login" class="px-6 py-2 border border-transparent hover:border-cyan-500/30 hover:bg-cyan-400/10 hover:text-cyan-400 font-bold rounded-full transition-all cursor-pointer text-sm">Log In</a>
-        <a routerLink="/register" class="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-105 font-bold rounded-full transition-all shadow-lg shadow-cyan-500/25 cursor-pointer text-sm text-white">Register</a>
+        <a routerLink="/register" class="px-6 py-2 bg-linear-to-r from-cyan-500 to-blue-600 hover:scale-105 font-bold rounded-full transition-all shadow-lg shadow-cyan-500/25 cursor-pointer text-sm text-white">Register</a>
       </ng-container>
 
       <ng-container *ngIf="isLoggedIn">
         <button routerLink="/player" class="flex items-center gap-3 px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-full cursor-pointer " title="Profile">
           <lucide-icon [img]="icons.User" [size]="16" class="text-cyan-400"></lucide-icon>
-          <span class="text-sm font-bold tracking-wide uppercase">{{ username }}</span>
+          <span class="text-sm font-bold tracking-wide ">{{ username }}</span>
         </button>
 
         <button (click)="onLogoutClick()" class="p-2 hover:bg-red-500/10 rounded-full transition-colors text-slate-400 hover:text-red-400" title="Logout">
@@ -32,7 +32,7 @@
     </div>
   </nav>
 
-  <div *ngIf="showLogoutConfirm" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+  <div *ngIf="showLogoutConfirm" class="fixed inset-0 z-100 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" (click)="cancelLogout()"></div>
     
     <div class="relative w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">

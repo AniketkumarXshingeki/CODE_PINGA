@@ -1,25 +1,26 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(config: ConfigService) {
+  constructor() {
     super({
       // 1. Tell the strategy where to find the token
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
-          return request?.cookies?.jwt; // 'jwt' matches the cookie name set in controller
-        },
+          const token = request?.cookies?.jwt;
+          console.log('Extracting JWT from cookies:', token ? 'token present' : 'no token');
+          return token;
+        }
       ]),
       
       // 2. Ensure we don't accept expired tokens
       ignoreExpiration: false,
       
       // 3. Use the same secret used during signAsync
-      secretOrKey: config.get<string>('JWT_SECRET') || 'fallback_secret',
+      secretOrKey: process.env.JWT_SECRET!,
     });
   }
 
@@ -28,6 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
    * The 'payload' is the decoded object containing { sub, username, email }.
    */
   async validate(payload: any) {
+    console.log('JWT validate called, payload:', payload);
     // Check if the payload exists (safety check)
     if (!payload) {
       throw new UnauthorizedException();

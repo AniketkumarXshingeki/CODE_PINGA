@@ -12,20 +12,19 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './player.html',
   styleUrl: './player.css',
 })
-export class Player implements OnInit {
+export class Player  {
 readonly icons = { User, Hash, Users, History, Settings, Edit3, Save, Plus, Trash2, X };
   
-  username = '';
   playerId = '';
  
 
   constructor(private authService: AuthService) {}
 
-  ngOnInit(): void {
-    this.username = this.authService.getUsername();
-    // this.playerId = this.authService.getPlayerId();
-  }
 
+get username(): string {
+    return this.authService.username;
+  }
+  
   deleteLoadout(id: string) {
     this.loadouts = this.loadouts.filter(l => l.id !== id);
   }
