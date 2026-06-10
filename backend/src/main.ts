@@ -8,7 +8,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   app.enableCors({
-    origin: ['http://localhost:8080', 'http://localhost:4200'], // Angular dev server
+    origin: ['http://localhost:8080', 'http://localhost:4200','https://code-pinga-frontend.onrender.com/'], // Angular dev server
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
