@@ -43,6 +43,8 @@ export class AuthController {
   }
 
 private attachcookie(response: Response, token: { access_token: string }) {
+
+    console.log('NODE_ENV:', process.env.NODE_ENV);
     response.cookie('jwt', token.access_token, {
     httpOnly: true, // JavaScript cannot read this (prevents XSS)
     secure: process.env.NODE_ENV === 'production', // Send only over HTTPS in prod

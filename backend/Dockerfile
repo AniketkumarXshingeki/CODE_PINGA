@@ -6,11 +6,9 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-ENV DATABASE_URL="postgresql://user:pass@localhost:5432/db"
 
 RUN npx prisma generate
 RUN npm run build
-
 
 # -------- Production stage --------
 FROM node:20-alpine
