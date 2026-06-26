@@ -16,6 +16,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        - DATABASE_URL=postgres://postgres:pxel0581@postgres:5432/CODE_PINGA
     container_name: pinga_backend
     environment:
       - DATABASE_URL=postgres://postgres:pxel0581@postgres:5432/CODE_PINGA

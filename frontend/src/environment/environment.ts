@@ -3,5 +3,7 @@ export const environment = {
   apiUrl: 
   // 'https://code-pinga.onrender.com/api',
   'http://localhost:3000/api',
-  socketUrl: 'https://code-pinga.onrender.com'
+  socketUrl: 
+  // 'https://code-pinga.onrender.com',
+  'http://localhost:3000'
 };

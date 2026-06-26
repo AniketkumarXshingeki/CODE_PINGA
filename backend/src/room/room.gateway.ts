@@ -11,7 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class RoomsGateway implements OnGatewayDisconnect {
-  @WebSocketServer() server: Server;
+  @WebSocketServer() server!: Server;
   constructor(private readonly roomsService: RoomsService, private readonly gameService: GameService, private readonly prisma: PrismaService) {}
   // Track users in memory for the lobby list
   private activeRooms = new Map<
